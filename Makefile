@@ -1,3 +1,4 @@
 all:
-	@$(MAKE) -C build
+	cmake --build build
+	cd build/test && ./tester
 
