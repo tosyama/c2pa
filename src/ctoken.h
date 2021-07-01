@@ -1,18 +1,19 @@
 typedef enum {
 	TT_ID,
 	TT_PUNCTUATOR,
-	TT_KEYWORD,
 	TT_STR,
 	TT_NUMBER,
+	TT_COMMENT,
 } CTokenType;
 
 class CToken {
 public:
 	CTokenType type;
-	int32_t lineno;
-	int16_t start;
-	int16_t end;
-	string info;
+	int32_t line_no;
+	int16_t pos;
+	int16_t len;
+
+	CToken(CTokenType type, int line_no, int pos, int len);
 };
 
 class CFileInfo {

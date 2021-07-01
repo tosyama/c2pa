@@ -23,3 +23,10 @@ string& CFileInfo::getLine(int n)
 	return lines[n-1];
 }
 
+
+CToken::CToken(CTokenType type, int line_no, int pos, int len) : type(type)
+{
+	this->line_no = line_no;
+	this->pos = pos;
+	this->len = len;
+}
