@@ -6,6 +6,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: prepare
+        run: |
+          sudo apt-get install googletest
+          sudo apt-get install lcov
       - uses: actions/checkout@v2
       - name: build
         run: |
