@@ -13,7 +13,7 @@ jobs:
       - name: install gtest
         run: |
           cd /usr/src/googletest
-          cmake
+          cmake .
           make
           make install
           cd ~
