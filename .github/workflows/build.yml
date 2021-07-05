@@ -11,7 +11,7 @@ jobs:
           sudo apt-get install googletest
           sudo apt-get install lcov
       - name: install gtest
-          run |
+          run: |
           cd /usr/src/googletest
           cmake
           make
