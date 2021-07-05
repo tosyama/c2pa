@@ -13,9 +13,9 @@ jobs:
       - name: install gtest
         run: |
           cd /usr/src/googletest
-          cmake .
-          make
-          make install
+          sudo cmake .
+          sudo make
+          sudo make install
           cd ~
       - uses: actions/checkout@v2
       - name: build
