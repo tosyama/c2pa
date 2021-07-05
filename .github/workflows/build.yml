@@ -26,4 +26,12 @@ jobs:
           cmake -DOUTPUT_COVERAGE=ON ..
           cd ..
           make
+      - name: extract coverage
+        run: |
+          make lcov
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secret.GITHUB_TOKEN }}
+          path-to-lcov: build/lcov.info
 
