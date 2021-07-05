@@ -11,12 +11,12 @@ jobs:
           sudo apt-get install googletest
           sudo apt-get install lcov
       - name: install gtest
-          run: |
-          cd /usr/src/googletest
-          cmake
-          make
-          make install
-          cd ~
+        run: |
+        cd /usr/src/googletest
+        cmake
+        make
+        make install
+        cd ~
       - uses: actions/checkout@v2
       - name: build
         run: |
