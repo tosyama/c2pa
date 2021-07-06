@@ -1,0 +1,37 @@
+name: build
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: prepare
+        run: |
+          sudo apt-get install libboost-dev
+          sudo apt-get install googletest
+          sudo apt-get install lcov
+      - name: install gtest
+        run: |
+          cd /usr/src/googletest
+          sudo cmake .
+          sudo make
+          sudo make install
+          cd ~
+      - uses: actions/checkout@v2
+      - name: build
+        run: |
+          mkdir build
+          cd build
+          cmake -DOUTPUT_COVERAGE=ON ..
+          cd ..
+          make
+      - name: extract coverage
+        run: |
+          make lcov
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: build/lcov.info
+

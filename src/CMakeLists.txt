@@ -1,9 +1,16 @@
 cmake_minimum_required(VERSION 3.1)
-project(c2pa CXX)
 add_library(cparser STATIC ctoken.cpp clexer.cpp)
 add_executable(c2pa c2pa.cpp)
 target_link_libraries(c2pa cparser)
 
+option(OUTPUT_COVERAGE "Output coverage files.")
 if (CMAKE_COMPILER_IS_GNUCXX)
+	 if (OUTPUT_COVERAGE)
+		message("COVERAGE: ON")
+		target_compile_options(cparser PRIVATE --coverage)
+		target_compile_options(c2pa PRIVATE --coverage)
+		set_target_properties(c2pa PROPERTIES LINK_FLAGS "--coverage")
+	endif()
 	set_source_files_properties(clexer.cpp PROPERTIES COMPILE_FLAGS -Wno-multichar)
 endif()
+

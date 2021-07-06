@@ -20,14 +20,16 @@ static void dumptokens(vector<CToken>& tokens, vector<string>& lines)
 	}
 }
 
-TEST(TempolaryWork, Open) {
+TEST(Lexer, TempolaryWork)
+{
 	CFileInfo finfo("cases/000_temp.c");
 	CLexer lexer(finfo);
 	vector<CToken>& tokens = lexer.getTokens();
 //	dumptokens(tokens, finfo.lines);
 }
 
-TEST(HelloWorld, Open) {
+TEST(Lexer, HelloWorld)
+{
 	CFileInfo finfo("cases/001_helloworld.c");
 	ASSERT_EQ(finfo.lines.size(), 7);
 
