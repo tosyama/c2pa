@@ -7,17 +7,18 @@
 #include <iostream>
 
 using namespace std;
+#include "cfileinfo.h"
 #include "ctoken.h"
 #include "clexer.h"
 
 static int read_number(string& str, int n);
 static int read_id(string& str, int n);
 
-CLexer::CLexer(CFileInfo &infile) : infile(infile)
+CLexer::CLexer(CFileInfo &infile) : infile(move(infile)), no(-1)
 {
 }
 
-vector<CToken>& CLexer::getTokens()
+vector<CToken0>& CLexer::scan()
 {
 	int line_no = 0;
 	bool in_comment = false;
@@ -30,13 +31,23 @@ vector<CToken>& CLexer::getTokens()
 		bool in_brace_str = false;
 		bool macro_mode = false;
 		bool include_file_mode = false;
+		bool define_mode = false;
 
 		line_no++;
 		start_pos = 0;
 		token_num = 0;
+
+		if (tokens.size()) {
+			tokens.back().is_eol = true;
+		}
+
 		for (int n = 0; n < line.size(); ) {
 			char c0 = line[n];
 			char c1 = (n+1 < line.size()) ? line[n+1] : '\0';
+			if (token_num >= 3) {
+				include_file_mode = false;
+				define_mode = false;
+			}
 
 			if (in_comment) {	// Comment
 				if (c0 == '*') {
@@ -44,7 +55,7 @@ vector<CToken>& CLexer::getTokens()
 						in_comment = false;
 						n += 2;
 						int len = n - start_pos;
-						tokens.emplace_back(TT_COMMENT, line_no, start_pos, len);
+						tokens.emplace_back(TT0_COMMENT, line_no, start_pos, len);
 						continue;
 					}
 				}
@@ -63,7 +74,7 @@ vector<CToken>& CLexer::getTokens()
 					n++;
 					int len = n - start_pos;
 					token_num++;
-					tokens.emplace_back(TT_STR, line_no, start_pos, len);
+					tokens.emplace_back(TT0_STR, line_no, start_pos, len);
 					continue;
 				}
 				n++;
@@ -79,7 +90,7 @@ vector<CToken>& CLexer::getTokens()
 			if (c0 == '/') {
 				if (c1 == '/') {	// Line comment
 					int len = line.size() - n;
-					tokens.emplace_back(TT_COMMENT, line_no, n, len);
+					tokens.emplace_back(TT0_COMMENT, line_no, n, len);
 					break;
 				}
 
@@ -94,7 +105,7 @@ vector<CToken>& CLexer::getTokens()
 			// Number
 			if (isdigit(c0) || c0 == '.' && isdigit(c1)) {
 				int len = read_number(line, n);
-				tokens.emplace_back(TT_NUMBER, line_no, n, len);
+				tokens.emplace_back(TT0_NUMBER, line_no, n, len);
 				n += len;
 				token_num++;
 				continue;
@@ -111,7 +122,7 @@ vector<CToken>& CLexer::getTokens()
 			// Identifier
 			if (isalpha(c0) || c0 == '_') {
 				int len = read_id(line, n);
-				tokens.emplace_back(TT_ID, line_no, n, len);
+				tokens.emplace_back(TT0_ID, line_no, n, len);
 				token_num++;
 				if (macro_mode && token_num == 2) {
 					// detect "include"
@@ -120,8 +131,23 @@ vector<CToken>& CLexer::getTokens()
 						if (!strncmp(idstr, "include", len)) {
 							include_file_mode = true;
 						}
+					} else if (len == 6) {
+						const char* idstr = line.c_str() + n;
+						if (!strncmp(idstr, "define", len)) {
+							define_mode = true;
+						}
+					}
+				} else if (define_mode && token_num == 3) {
+					int next_pos = n+len;
+					if (next_pos < line.size()) {
+						if (line[n+len] == '(') {
+							tokens.emplace_back(TT0_MACRO_ARGS, line_no, n+len, 1);
+							token_num++;
+							len++;
+						}
 					}
 				}
+
 				n += len;
 				continue;
 			}
@@ -138,11 +164,10 @@ vector<CToken>& CLexer::getTokens()
 						}
 					}
 				
-					tokens.emplace_back(TT_STR, line_no, s, len);
-					include_file_mode = false;
+					tokens.emplace_back(TT0_STR, line_no, s, len);
+					token_num++;
 					continue;
 				}
-				include_file_mode = false;
 			}
 
 			int16_t c = (c0 << 8) | c1;
@@ -171,26 +196,33 @@ vector<CToken>& CLexer::getTokens()
 					}
 				}
 
-				if (token_num == 0 && c0 == '#') {
+				if (token_num==0 && c0=='#' && len==1) {
+					tokens.emplace_back(TT0_MACRO, line_no, n, 1);
 					macro_mode = true;
+				} else {
+					tokens.emplace_back(TT0_PUNCTUATOR, line_no, n, len);
 				}
 
-				tokens.emplace_back(TT_PUNCTUATOR, line_no, n, len);
 				n += len;
 				token_num++;
+				continue;
 			}
+			BOOST_ASSERT(false);
 		}
 
 		if (in_comment) { // Block comment continues next line
 			int len = line.size() - start_pos;
-			tokens.emplace_back(TT_COMMENT, line_no, start_pos, len);
+			tokens.emplace_back(TT0_COMMENT, line_no, start_pos, len);
 		}
 
 		if (in_str_literal) { // String Literal continues next line
 			int len = line.size() - start_pos;
-			tokens.emplace_back(TT_STR, line_no, start_pos, len);
+			tokens.emplace_back(TT0_STR, line_no, start_pos, len);
 		}
 	}
+
+	if (tokens.size())
+		tokens.back().is_eol = true;
 
 	return tokens;
 }
@@ -228,4 +260,3 @@ int read_id(string& str, int n)
 	BOOST_ASSERT(m.size() == 1);
 	return m.length(0);
 }
-

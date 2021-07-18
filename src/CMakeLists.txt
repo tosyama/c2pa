@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-add_library(cparser STATIC ctoken.cpp clexer.cpp)
+add_library(cparser STATIC cfileinfo.cpp ctoken.cpp clexer.cpp cpreprocessor.cpp)
 add_executable(c2pa c2pa.cpp)
 target_link_libraries(c2pa cparser)
 

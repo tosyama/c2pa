@@ -1,8 +1,9 @@
 class CLexer {
 public:
-	CFileInfo &infile;
-	vector<CToken> tokens;
+	int no;
+	CFileInfo infile;
+	vector<CToken0> tokens;
 
 	CLexer(CFileInfo &infile);
-	vector<CToken>& getTokens();
+	vector<CToken0>& scan();
 };
