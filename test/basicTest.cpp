@@ -43,7 +43,20 @@ TEST(Lexer, HelloWorld)
 static void dumpmacros(vector<CMacro*> &macros)
 {
 	for (CMacro* m: macros) {
-		cout << m->name << endl;
+		cout << m->name << ":";
+		for (CToken* t: m->body) {
+			if (t->type == TT_ID)
+				cout << " " << *t->info.id;
+			else if (t->type == TT_PUNCTUATOR)
+				cout << " *";
+			else if (t->type == TT_INT || t->type == TT_UINT || t->type == TT_LONG || t->type == TT_ULONG)
+				cout << " 0";
+			else if (t->type == TT_KEYWORD)
+				cout << " d";
+			else 
+				cout << " ?";
+		}
+		cout << endl;
 	}
 }
 
@@ -57,11 +70,16 @@ TEST(Preprocessor, TempolaryWork)
 	dumpmacros(macros);
 }
 
-TEST(Preprocessor, HelloWorld)
+TEST(Preprocessor, DISABLED_HelloWorld)
 {
 	vector<CMacro*> macros;
-	vector<string> include_paths = {"/usr/include", "/usr/include/x86_64-linux-gnu"};
+	vector<string> include_paths = {
+		"/usr/include",
+		"/usr/include/x86_64-linux-gnu",
+		"/usr/lib/gcc/x86_64-linux-gnu/7/include"
+	};
 	CPreprocessor cpp(macros, include_paths);
+	cpp.loadPredefined("../src/predefined.h");
 	cpp.preprocess("cases/001_helloworld.c");
 	// dumpmacros(macros);
 }

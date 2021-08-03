@@ -14,3 +14,4 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	set_source_files_properties(clexer.cpp PROPERTIES COMPILE_FLAGS -Wno-multichar)
 endif()
 
+configure_file(predefined.h predefined.h COPYONLY)

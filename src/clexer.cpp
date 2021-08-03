@@ -260,3 +260,104 @@ int read_id(string& str, int n)
 	BOOST_ASSERT(m.size() == 1);
 	return m.length(0);
 }
+
+static regex rex_octint("(0[0-7]+)([uU]?)([lL]?)");
+static regex rex_hexint("(0x[0-9a-fA-F]+)([uU]?)([lL]?)");
+static regex rex_decint("([0-9]+)([uU]?)([lL]?)");
+static regex rex_float("[0-9]*.?[0-9]*([eE]{1}[+-]?[0-9]+)?([fFlL]?)");
+
+CToken* CLexer::createToken(int n)
+{
+	CToken0 *t0 = &tokens[n];
+	CToken *t = NULL;
+
+	if (t0->type == TT0_ID) {
+		string str = get_str(t0);
+		t = new CToken(TT_ID, no, n);
+		t->info.id = new string(move(str));
+
+	} else if (t0->type == TT0_PUNCTUATOR) {
+		t = new CToken(TT_PUNCTUATOR, no, n);
+		t->info.punc = get_ch(t0);
+
+	} else if (t0->type == TT0_NUMBER) {
+		string numstr = get_str(t0);
+		smatch m;
+
+		if (regex_match(numstr, m, rex_octint)
+				|| regex_match(numstr, m, rex_hexint)
+				|| regex_match(numstr, m, rex_decint)) {
+			bool isUnsigned = m[2].str().size();
+			bool isLong = m[3].str().size();
+			if (isUnsigned) {
+				t = new CToken(isLong ? TT_ULONG : TT_UINT, no, n);
+				t->info.uintval = stoul(m[1].str(), NULL, 0);
+			} else {
+				t = new CToken(isLong ? TT_LONG : TT_INT, no, n);
+				t->info.uintval = stol(m[1].str(), NULL, 0);
+			}
+
+		} else if (regex_match(numstr, m, rex_float)) {
+			if (m[2].str() == "") {
+				t = new CToken(TT_DOUBLE, no, n);
+				t->info.floval = stof(numstr);
+			} else if (m[2].str() == "f" || m[2].str() == "F") {
+				t = new CToken(TT_FLOAT, no, n);
+				t->info.dblval = stod(numstr);
+			} else {
+				BOOST_ASSERT(m[2].str() == "l" || m[2].str() == "L");
+				t = new CToken(TT_LDOUBLE, no, n);
+				t->info.ldblval = stold(numstr);
+			}
+			return t;
+		}
+
+	} else {
+		return NULL;
+	}
+
+	return t;
+}
+
+CToken* CLexer::createIfMacroToken(int n)
+{
+	CToken *t = createToken(n);
+
+	BOOST_ASSERT(t);
+	if (t->type == TT_ID && *t->info.id == "defined") {
+		delete t;
+		t = new CToken(TT_KEYWORD, no, n);
+		t->info.keyword = TK_DEFINED;
+	}
+
+	return t;
+}
+
+string CLexer::get_str(CToken0* t0)
+{
+	return infile.lines[t0->line_no-1].substr(t0->pos, t0->len);
+}
+
+int CLexer::get_ch(CToken0* t0)
+{
+	BOOST_ASSERT(t0->type == TT0_PUNCTUATOR);
+	BOOST_ASSERT(t0->len <= 3);
+	int n = t0->line_no-1;
+	int pos = t0->pos;
+
+	if (t0->len == 1) {
+		return infile.lines[n][pos];
+
+	} else if (t0->len == 2) {
+		char c0 = infile.lines[n][pos];
+		char c1 = infile.lines[n][pos+1];
+		return (c0 << 8) | c1;
+
+	} else {
+		char c0 = infile.lines[n][pos];
+		char c1 = infile.lines[n][pos+1];
+		char c2 = infile.lines[n][pos+2];
+		return (c0 << 16) | (c1 << 8) | c2;
+	}
+}
+

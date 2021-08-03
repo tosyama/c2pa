@@ -1,5 +1,5 @@
 typedef enum {
-	MT_ID,
+	MT_OBJ,
 	MT_FUNC,
 } CMacroType;
 
@@ -7,10 +7,11 @@ class CMacro {
 public:
 	CMacroType type;
 	string name;
-	vector<string> args;
+	vector<string> params;
 	vector<CToken*> body;
+	int lexer_no;
 
-	CMacro(CMacroType type, string name);
+	CMacro(CMacroType type, string name, int lexer_no);
 };
 
 class CPreprocessor {
@@ -19,6 +20,7 @@ class CPreprocessor {
 public:
 	vector<CLexer*> lexers;
 	vector<CMacro*> &macros;
+	vector<CMacro*> macro_stack;
 	vector<string> &include_paths;
 
 	CPreprocessor(vector<CMacro*> &macros, vector<string> &include_paths)
@@ -28,6 +30,7 @@ public:
 	}
 
 	// true: success, false: failed
+	bool loadPredefined(const string& filepath);
 	bool preprocess(const string& filepath, vector<CToken*> *tokens=NULL);
 };
 

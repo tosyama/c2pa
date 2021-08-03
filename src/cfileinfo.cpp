@@ -67,6 +67,7 @@ string CFileInfo::getFilePath(string filepath, string parentfile, vector<string>
 			BOOST_ASSERT(false);
 		}
 		fpath = filepath.substr(1, filepath.size()-2);
+
 	} else {
 		return "";
 	}
@@ -87,6 +88,6 @@ string CFileInfo::getFilePath(string filepath, string parentfile, vector<string>
 		}
 	}
 
-	return fpath;
+	return "";
 }
 

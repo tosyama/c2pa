@@ -21,20 +21,42 @@ public:
 
 typedef enum {
 	TT_ID,
+	TT_KEYWORD,
 	TT_PUNCTUATOR,
+
+	TT_INT,
+	TT_UINT,
+	TT_LONG,
+	TT_ULONG,
+
+	TT_FLOAT,
+	TT_DOUBLE,
+	TT_LDOUBLE,
 	TT_INCLUDE,
 } CTokenType;
+
+typedef enum {
+	TK_DEFINED,
+} CTokenKeyword;
 
 class CToken {
 public:
 	CTokenType type;
 	int16_t lexer_no;
-	int start_token_no;
-	int end_token_no;
+	int token0_no;
 	union {
+		string *id;
+		CTokenKeyword keyword;
+		int punc;
 		vector<CToken*> *tokens;	// for TT_INCLUDE
+		long intval;
+		unsigned long uintval;
+		float floval;
+		double dblval;
+		long double ldblval;
 	} info;
 
-	CToken(CTokenType type, int lexer_no, int start_token_no, int end_token_no);
+	CToken(CTokenType type, int lexer_no, int token0_no);
+	CToken(const CToken& token);
 	~CToken();
 };
