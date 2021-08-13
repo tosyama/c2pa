@@ -15,6 +15,7 @@ static void dumptokens(vector<CToken0>& tokens, vector<string>& lines)
 			t.type == TT0_ID ? "id":
 			t.type == TT0_NUMBER ? "number":
 			t.type == TT0_STR ? "str":
+			t.type == TT0_CHAR ? "char":
 			t.type == TT0_PUNCTUATOR ? "punc":
 			t.type == TT0_COMMENT ? "comment":
 			t.type == TT0_MACRO? "macro":
@@ -43,15 +44,35 @@ TEST(Lexer, HelloWorld)
 static void dumpmacros(vector<CMacro*> &macros)
 {
 	for (CMacro* m: macros) {
-		cout << m->name << ":";
+		cout << m->name;
+		if (m->type == MT_FUNC) {
+			cout << "(";
+			for (auto i=m->params.begin(); i != m->params.end(); ++i) {
+				cout << *i;
+				if (i != m->params.end()-1) {
+					cout << ",";
+				}
+			}
+			cout << ")";
+		}
+		cout << ":";
 		for (CToken* t: m->body) {
-			if (t->type == TT_ID)
+			if (!t) {
+				cout << " null";
+			} else if (t->type == TT_ID) {
 				cout << " " << *t->info.id;
-			else if (t->type == TT_PUNCTUATOR)
-				cout << " *";
-			else if (t->type == TT_INT || t->type == TT_UINT || t->type == TT_LONG || t->type == TT_ULONG)
-				cout << " 0";
-			else if (t->type == TT_KEYWORD)
+
+			} else if (t->type == TT_PUNCTUATOR) {
+				cout << " ";
+				char c0 = t->info.punc & 0xFF;
+				char c1 = (t->info.punc >> 8) & 0xFF;
+				if (c1) cout << c1;
+				cout << c0;
+
+			} else if (t->type == TT_INT || t->type == TT_UINT || t->type == TT_LONG || t->type == TT_ULONG) {
+				cout << " " << t->info.intval;
+
+			} else if (t->type == TT_KEYWORD)
 				cout << " d";
 			else 
 				cout << " ?";
@@ -67,10 +88,10 @@ TEST(Preprocessor, TempolaryWork)
 	CPreprocessor cpp(macros, include_paths);
 	cpp.preprocess("cases/000_temp.c");
 //	dumptokens(cpp.lexers[0]->tokens, cpp.lexers[0]->infile.lines);
-	dumpmacros(macros);
+//	dumpmacros(macros);
 }
 
-TEST(Preprocessor, DISABLED_HelloWorld)
+TEST(Preprocessor, HelloWorld)
 {
 	vector<CMacro*> macros;
 	vector<string> include_paths = {
@@ -82,5 +103,6 @@ TEST(Preprocessor, DISABLED_HelloWorld)
 	cpp.loadPredefined("../src/predefined.h");
 	cpp.preprocess("cases/001_helloworld.c");
 	// dumpmacros(macros);
+	cout << "token size: " << cpp.top_tokens.size() << endl;
 }
 

@@ -3,6 +3,7 @@ typedef enum {
 	TT0_PUNCTUATOR,
 	TT0_STR,
 	TT0_NUMBER,
+	TT0_CHAR,
 	TT0_COMMENT,
 	TT0_MACRO,
 	TT0_MACRO_ARGS,
@@ -23,6 +24,7 @@ typedef enum {
 	TT_ID,
 	TT_KEYWORD,
 	TT_PUNCTUATOR,
+	TT_STR,
 
 	TT_INT,
 	TT_UINT,
@@ -48,6 +50,7 @@ public:
 		string *id;
 		CTokenKeyword keyword;
 		int punc;
+		string *str;
 		vector<CToken*> *tokens;	// for TT_INCLUDE
 		long intval;
 		unsigned long uintval;

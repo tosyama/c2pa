@@ -170,6 +170,25 @@ vector<CToken0>& CLexer::scan()
 				}
 			}
 
+			// Charactor Constant
+			if (c0=='\'') { 
+				int s = n;
+				n++;
+				for (; n < line.size(); n++) {
+					char c0 = line[n];
+					if (c0 == '\\') {
+						n++;
+						continue;
+					} else if (c0 == '\'') {
+						n++;
+						break;
+					}
+				}
+				tokens.emplace_back(TT0_CHAR, line_no, s, n-s);
+				token_num++;
+				continue;
+			}
+
 			int16_t c = (c0 << 8) | c1;
 
 			// Punctuator
@@ -199,6 +218,7 @@ vector<CToken0>& CLexer::scan()
 				if (token_num==0 && c0=='#' && len==1) {
 					tokens.emplace_back(TT0_MACRO, line_no, n, 1);
 					macro_mode = true;
+
 				} else {
 					tokens.emplace_back(TT0_PUNCTUATOR, line_no, n, len);
 				}
@@ -266,6 +286,9 @@ static regex rex_hexint("(0x[0-9a-fA-F]+)([uU]?)([lL]?)");
 static regex rex_decint("([0-9]+)([uU]?)([lL]?)");
 static regex rex_float("[0-9]*.?[0-9]*([eE]{1}[+-]?[0-9]+)?([fFlL]?)");
 
+static string& unescape(string& str);
+static int ch2int(const string &s, int pos, int len);
+
 CToken* CLexer::createToken(int n)
 {
 	CToken0 *t0 = &tokens[n];
@@ -307,12 +330,30 @@ CToken* CLexer::createToken(int n)
 			} else {
 				BOOST_ASSERT(m[2].str() == "l" || m[2].str() == "L");
 				t = new CToken(TT_LDOUBLE, no, n);
-				t->info.ldblval = stold(numstr);
+				try {
+					t->info.ldblval = stold(numstr);
+				} catch(exception& e) {
+					cout << "warn: failed to convert ldouble: ";
+					cout << get_str(t0) << endl;
+					t->info.ldblval = 0.0l;
+				}
 			}
 			return t;
 		}
 
+	} else if (t0->type == TT0_CHAR) {
+		t = new CToken(TT_INT, no, n);
+		t->info.intval = -1;
+		return t;
+
+	} else if (t0->type == TT0_STR) {
+		string str = get_str(t0);
+		t = new CToken(TT_STR, no, n);
+		t->info.str = new string(move(str));
+		return t;
+
 	} else {
+		BOOST_ASSERT(t0->type == TT0_COMMENT);
 		return NULL;
 	}
 
@@ -338,26 +379,74 @@ string CLexer::get_str(CToken0* t0)
 	return infile.lines[t0->line_no-1].substr(t0->pos, t0->len);
 }
 
+static int hexc(int c)
+{
+	if (c>='0' && c<='9') return c-'0';
+	if (c>='a' && c<='f') return 10+c-'a';
+	if (c>='A' && c<='F') return 10+c-'A';
+	return -1;
+}
+
+string& unescape(string& str)
+{
+	int sz = str.size();
+	int d=0;
+	for (int s=0; s<sz; ++s,++d) {
+		if (str[s] != '\\') {
+			str[d] = str[s];
+			continue;
+		}
+
+		++s;
+
+		switch(str[s]) {
+			case 'a': str[d] = '\a'; break;
+			case 'b': str[d] = '\b'; break;
+			case 'n': str[d] = '\n'; break;
+			case 'r': str[d] = '\r'; break;
+			case 't': str[d] = '\t'; break;
+			case 'v': str[d] = '\v'; break;
+			case '0': str[d] = '\0'; break;
+			case 'x': {
+						  int h1 = hexc(str[s+1]), h2 = hexc(str[s+2]);
+						  if (h1 >= 0 && h2 >= 0) {
+							  str[d] = 16*h1 + h2; s+=2;
+						  } else {
+							  str[d] = 'x';
+						  }
+					  } break;
+			default: str[d] = str[s];
+		} /* switch */
+	}
+	str.resize(d);
+	return str;
+}
+
+int ch2int(const string &s, int pos, int len)
+{
+	BOOST_ASSERT(len <= 8);
+	if (len == 1) { return s[pos]; }
+
+	int c = 0;
+	for (int i=0; i<len; i++) {
+		c <<= 8;
+		c |= s[pos+i];
+	}
+
+	return c;
+}
+
 int CLexer::get_ch(CToken0* t0)
 {
 	BOOST_ASSERT(t0->type == TT0_PUNCTUATOR);
 	BOOST_ASSERT(t0->len <= 3);
 	int n = t0->line_no-1;
-	int pos = t0->pos;
 
-	if (t0->len == 1) {
-		return infile.lines[n][pos];
-
-	} else if (t0->len == 2) {
-		char c0 = infile.lines[n][pos];
-		char c1 = infile.lines[n][pos+1];
-		return (c0 << 8) | c1;
-
-	} else {
-		char c0 = infile.lines[n][pos];
-		char c1 = infile.lines[n][pos+1];
-		char c2 = infile.lines[n][pos+2];
-		return (c0 << 16) | (c1 << 8) | c2;
-	}
+	return ch2int(infile.lines[n], t0->pos, t0->len);
 }
 
+string CLexer::get_oristr(int token0_no)
+{
+	CToken0 *t0 = &tokens[token0_no];
+	return infile.lines[t0->line_no-1].substr(t0->pos, t0->len);
+}

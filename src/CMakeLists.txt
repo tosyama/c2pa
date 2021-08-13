@@ -12,6 +12,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 		set_target_properties(c2pa PROPERTIES LINK_FLAGS "--coverage")
 	endif()
 	set_source_files_properties(clexer.cpp PROPERTIES COMPILE_FLAGS -Wno-multichar)
+	set_source_files_properties(cpreprocessor.cpp PROPERTIES COMPILE_FLAGS -Wno-multichar)
 endif()
 
 configure_file(predefined.h predefined.h COPYONLY)

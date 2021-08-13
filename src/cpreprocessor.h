@@ -15,9 +15,10 @@ public:
 };
 
 class CPreprocessor {
-	vector<CToken*> top_tokens;
 
 public:
+	vector<CToken*> top_tokens;
+
 	vector<CLexer*> lexers;
 	vector<CMacro*> &macros;
 	vector<CMacro*> macro_stack;
