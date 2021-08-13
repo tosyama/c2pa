@@ -505,6 +505,8 @@ vector<CToken*> expand_macro_func(CPreprocessor& cpp, CMacro *m, vector<vector<C
 	}
 
 	if (m->params.size() != args.size()) {
+		cout << "param error:" << m->name << ":" << m->params.size()
+			<< "!=" << args.size() << endl;
 		BOOST_ASSERT(false);
 	}
 
