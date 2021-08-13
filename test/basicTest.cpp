@@ -97,7 +97,9 @@ TEST(Preprocessor, HelloWorld)
 	vector<string> include_paths = {
 		"/usr/include",
 		"/usr/include/x86_64-linux-gnu",
-		"/usr/lib/gcc/x86_64-linux-gnu/7/include"
+		"/usr/lib/gcc/x86_64-linux-gnu/7/include",
+		"/usr/lib/gcc/x86_64-linux-gnu/8/include",
+		"/usr/lib/gcc/x86_64-linux-gnu/9/include",
 	};
 	CPreprocessor cpp(macros, include_paths);
 	cpp.loadPredefined("../src/predefined.h");

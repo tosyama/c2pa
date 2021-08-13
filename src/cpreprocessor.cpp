@@ -188,6 +188,7 @@ int process_include(CPreprocessor& cpp, CLexer& lexer, int n, vector<CToken*>* t
 	string foundpath = CFileInfo::getFilePath(inc_path, lexer.infile.fname, cpp.include_paths);
 
 	if (foundpath == "") {
+		cout << inc_path << " is not found." << endl;
 		BOOST_ASSERT(false);
 	}
 
