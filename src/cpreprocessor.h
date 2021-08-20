@@ -1,3 +1,11 @@
+class CPreprocessError : public runtime_error {
+public:
+	int lexer_no;
+	int token0_start;
+	int token0_end;
+	CPreprocessError(const string& what, int lexer_no=-1, int start=-1, int end=-1); 
+};
+
 typedef enum {
 	MT_OBJ,
 	MT_FUNC,
@@ -33,5 +41,6 @@ public:
 	// true: success, false: failed
 	bool loadPredefined(const string& filepath);
 	bool preprocess(const string& filepath, vector<CToken*> *tokens=NULL);
+	void outputError(const CPreprocessError& err);
 };
 

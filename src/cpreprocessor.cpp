@@ -505,8 +505,12 @@ vector<CToken*> expand_macro_func(CPreprocessor& cpp, CMacro *m, vector<vector<C
 	}
 
 	if (m->params.size() != args.size()) {
-		cout << "param error:" << m->name << ":" << m->params.size()
-			<< "!=" << args.size() << endl;
+		CPreprocessError err("argment error: " + m->name);
+		if (args.size() && args[0].size()) {
+			err.lexer_no = args[0][0]->lexer_no;
+			err.token0_start = args[0][0]->token0_no;
+		}
+		cpp.outputError(err);
 		BOOST_ASSERT(false);
 	}
 
@@ -1128,3 +1132,28 @@ int next_pos(const vector<CToken0>& token0s, int n)
 	return n;
 }
 
+void CPreprocessor::outputError(const CPreprocessError& err)
+{
+	if (err.lexer_no >= 0 && err.token0_start >= 0) {
+		CLexer &lexer = *lexers[err.lexer_no];
+		CToken0 &t = lexer.tokens[err.token0_start];
+		string& line = lexer.infile.lines[t.line_no-1];
+		cout << lexer.infile.fname << ":"
+			<< t.line_no << ":" << t.pos+1 << ": "
+			<< err.what() << endl;
+		cout << line << endl;
+
+		for (int i=0; i<t.pos; i++) {
+			cout << ' ';
+		}
+		cout << '^' << endl;
+
+	} else {
+		cout << err.what() << endl;
+	}
+}
+
+CPreprocessError::CPreprocessError(const string& what, int lexer_no, int start, int end)
+	: runtime_error(what), lexer_no(lexer_no), token0_start(start), token0_end(end)
+{
+}
