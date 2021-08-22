@@ -471,15 +471,15 @@ vector<CToken*> expand_macro_obj(CPreprocessor& cpp, CMacro *m)
 	for (int n=0; n<m->body.size(); n++) {
 		CToken *t = m->body[n];
 		if (t->type == TT_ID) {
-			CMacro* m = macro_exists(cpp, *t->info.id);
-			if (m) {
-				if (m->type == MT_OBJ) {
-					vector<CToken*> expanded_tokens = expand_macro_obj(cpp, m);
+			CMacro* mm = macro_exists(cpp, *t->info.id);
+			if (mm) {
+				if (mm->type == MT_OBJ) {
+					vector<CToken*> expanded_tokens = expand_macro_obj(cpp, mm);
 					tokens.insert(tokens.end(), expanded_tokens.begin(), expanded_tokens.end());
 				} else {
-					BOOST_ASSERT(m->type == MT_FUNC);
+					BOOST_ASSERT(mm->type == MT_FUNC);
 					vector<vector<CToken*>> args = extruct_macro_func_args2(m->body, n);
-					vector<CToken*> expanded_tokens = expand_macro_func(cpp, *mi, args);
+					vector<CToken*> expanded_tokens = expand_macro_func(cpp, mm, args);
 					tokens.insert(tokens.end(), expanded_tokens.begin(), expanded_tokens.end());
 				}
 				continue;
@@ -570,15 +570,15 @@ vector<CToken*> expand_macro_func(CPreprocessor& cpp, CMacro *m, vector<vector<C
 	for (int n=0; n<pre_tokens2.size(); n++) {
 		CToken *t = pre_tokens2[n];
 		if (t->type == TT_ID) {
-			CMacro* m = macro_exists(cpp, *t->info.id);
-			if (m) {
-				if (m->type == MT_OBJ) {
-					vector<CToken*> expanded_tokens = expand_macro_obj(cpp, m);
+			CMacro* mm = macro_exists(cpp, *t->info.id);
+			if (mm) {
+				if (mm->type == MT_OBJ) {
+					vector<CToken*> expanded_tokens = expand_macro_obj(cpp, mm);
 					tokens.insert(tokens.end(), expanded_tokens.begin(), expanded_tokens.end());
 				} else {
 					BOOST_ASSERT(m->type == MT_FUNC);
-					vector<vector<CToken*>> args = extruct_macro_func_args2(m->body, n);
-					vector<CToken*> expanded_tokens = expand_macro_func(cpp, *mi, args);
+					vector<vector<CToken*>> args = extruct_macro_func_args2(pre_tokens2, n);
+					vector<CToken*> expanded_tokens = expand_macro_func(cpp, mm, args);
 					tokens.insert(tokens.end(), expanded_tokens.begin(), expanded_tokens.end());
 				}
 				delete t;
