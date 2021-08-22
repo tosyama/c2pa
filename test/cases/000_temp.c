@@ -13,6 +13,8 @@
 #endif
 int main()
 {
+	m1(12
+	);
 	printf("Hello World!\n");
 	if (a=='A')
 		a <<= 3;

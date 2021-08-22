@@ -104,7 +104,7 @@ TEST(Preprocessor, HelloWorld)
 	CPreprocessor cpp(macros, include_paths);
 	cpp.loadPredefined("../src/predefined.h");
 	cpp.preprocess("cases/001_helloworld.c");
-	// dumpmacros(macros);
+//	dumpmacros(macros);
 	cout << "token size: " << cpp.top_tokens.size() << endl;
 }
 

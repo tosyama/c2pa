@@ -63,7 +63,7 @@ bool CPreprocessor::loadPredefined(const string& filepath)
 
 static CMacro* macro_exists(CPreprocessor& cpp, const string& id);
 static vector<CToken*> expand_macro_obj(CPreprocessor& cpp, CMacro *m);
-static vector<vector<CToken*>> extruct_macro_func_args(CLexer &lexer, int &n);
+static vector<vector<CToken*>> extruct_macro_func_args(CLexer &lexer, int &n, bool single_line=true);
 static vector<CToken*> expand_macro_func(CPreprocessor& cpp, CMacro *mi, vector<vector<CToken*>> args);
 
 bool CPreprocessor::preprocess(const string& filepath, vector<CToken*> *tokens)
@@ -145,7 +145,7 @@ bool CPreprocessor::preprocess(const string& filepath, vector<CToken*> *tokens)
 
 					} else {
 						BOOST_ASSERT(m->type == MT_FUNC);
-						vector<vector<CToken*>> args = extruct_macro_func_args(lexer, n);
+						vector<vector<CToken*>> args = extruct_macro_func_args(lexer, n, false);
 						vector<CToken*> expanded_tokens = expand_macro_func(*this, m, args);
 						tokens->insert(tokens->end(), expanded_tokens.begin(), expanded_tokens.end());
 
@@ -598,7 +598,7 @@ string get_oristr(CPreprocessor& cpp, CToken *t)
 	return cpp.lexers[t->lexer_no]->get_oristr(t->token0_no);
 }
 
-vector<vector<CToken*>> extruct_macro_func_args(CLexer &lexer, int &n)
+vector<vector<CToken*>> extruct_macro_func_args(CLexer &lexer, int &n, bool single_line)
 {
 	vector<vector<CToken*>> args;
 
@@ -613,9 +613,23 @@ vector<vector<CToken*>> extruct_macro_func_args(CLexer &lexer, int &n)
 	
 	int blace_level = 1;
 	vector<CToken*> arg;
+	bool succeeded = false;
 
-	do {
-		n = next_pos(token0s, n);
+	for(;;) {
+		// Skip comment
+		for(;;) {
+			if(single_line && token0s[n].is_eol)
+				goto ENDLOOP;
+			n++;
+			if (n >= token0s.size()) 
+				goto ENDLOOP;
+			CToken0 &t0 = token0s[n];
+			if (t0.type != TT0_COMMENT)
+				break;
+			if (t0.is_eol && single_line)
+				goto ENDLOOP;
+		}
+
 		CToken* t = lexer.createIfMacroToken(n);
 		if (t->type == TT_PUNCTUATOR) {
 			if (t->info.punc == '(') {
@@ -624,6 +638,7 @@ vector<vector<CToken*>> extruct_macro_func_args(CLexer &lexer, int &n)
 				blace_level--;
 				if (blace_level == 0) {
 					delete t;
+					succeeded = true;
 					break;
 				}
 			} else if (t->info.punc == ',' && blace_level == 1) {
@@ -637,8 +652,11 @@ vector<vector<CToken*>> extruct_macro_func_args(CLexer &lexer, int &n)
 			}
 		}
 		arg.push_back(t);
-
-	} while (!token0s[n].is_eol);
+	};
+ENDLOOP:
+	if (!succeeded) {
+		BOOST_ASSERT(false);
+	}
 
 	if (arg.size())
 		args.push_back(arg);
