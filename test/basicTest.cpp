@@ -100,6 +100,7 @@ TEST(Preprocessor, HelloWorld)
 		"/usr/lib/gcc/x86_64-linux-gnu/7/include",
 		"/usr/lib/gcc/x86_64-linux-gnu/8/include",
 		"/usr/lib/gcc/x86_64-linux-gnu/9/include",
+		"/usr/lib/gcc/x86_64-linux-gnu/10/include",
 	};
 	CPreprocessor cpp(macros, include_paths);
 	cpp.loadPredefined("../src/predefined.h");
