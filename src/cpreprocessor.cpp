@@ -667,10 +667,11 @@ ENDLOOP:
 vector<vector<CToken*>> extruct_macro_func_args2(vector<CToken*> &tokens, int &n)
 {
 	vector<vector<CToken*>> args;
+	BOOST_ASSERT(n+2 < tokens.size());
 	n++;
-	BOOST_ASSERT(n < tokens.size());
 	BOOST_ASSERT(tokens[n]->type == TT_PUNCTUATOR);
 	BOOST_ASSERT(tokens[n]->info.punc == '(');
+	n++;
 
 	int blace_level = 1;
 	vector<CToken*> arg;
