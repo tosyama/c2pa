@@ -519,8 +519,37 @@ vector<CToken*> expand_macro_func(CPreprocessor& cpp, CMacro *m, vector<vector<C
 
 	for (int n=0; n<m->body.size(); n++) {
 		CToken *t = m->body[n];
-		if (t->type == TT_ID) {
+
+		if (t->type == TT_PUNCTUATOR && t->info.punc == '#') {	// stringnize
+			n++;
+			if (n>=m->body.size()) {
+				BOOST_ASSERT(false);
+			}
+			t = m->body[n];
+			if (t->type != TT_ID) {
+				BOOST_ASSERT(false);
+			}
 			int p;
+			bool matched = false;
+			for (p=0; p < m->params.size(); p++) {
+				if (*t->info.id == m->params[p]) {
+					matched = true;
+					break;
+				}
+			}
+			if (!matched) {
+				BOOST_ASSERT(false);
+			}
+
+			CToken &arg_start = *args[p][0];
+			CToken &arg_end = **(args[p].end()-1);
+			CLexer &lexer = *cpp.lexers[arg_start.lexer_no];
+
+			string s = lexer.get_oristr(&arg_start, &arg_end);
+
+			pre_tokens.push_back(new CToken(s, arg_start.lexer_no, arg_start.token0_no));
+
+		} else if (t->type == TT_ID) {	// expand argument
 			bool matched = false;
 			for (int p=0; p < m->params.size(); p++) {
 				if (*t->info.id == m->params[p]) {

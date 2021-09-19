@@ -61,5 +61,6 @@ public:
 
 	CToken(CTokenType type, int lexer_no, int token0_no);
 	CToken(const CToken& token);
+	CToken(const string& s, int lexer_no, int token0_no);
 	~CToken();
 };

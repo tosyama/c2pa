@@ -450,3 +450,30 @@ string CLexer::get_oristr(int token0_no)
 	CToken0 *t0 = &tokens[token0_no];
 	return infile.lines[t0->line_no-1].substr(t0->pos, t0->len);
 }
+
+string CLexer::get_oristr(const CToken *start, const CToken *end)
+{
+	BOOST_ASSERT(start->lexer_no == no);
+	BOOST_ASSERT(end->lexer_no == no);
+	BOOST_ASSERT(start->token0_no <= end->token0_no);
+
+	int start_line = tokens[start->token0_no].line_no-1;
+	int start_pos = tokens[start->token0_no].pos;
+	int end_line = tokens[end->token0_no].line_no-1;
+	int end_len = tokens[end->token0_no].pos + tokens[end->token0_no].len;
+
+	if (start_line == end_line) {
+		end_len -= start_pos;
+		return infile.lines[start_line].substr(start_pos, end_len);
+	} else {
+		string s = infile.lines[start_line].substr(start_pos) + "\n";
+		for (int n=start_line+1; n<end_line; n++) {
+			s += infile.lines[n] + "\n";
+		}
+		s += infile.lines[end_line].substr(0, end_len);
+		return s;
+	}
+
+	return "";
+}
+

@@ -40,11 +40,19 @@ CToken::CToken(const CToken& token)
 			info.dblval = token.info.dblval; break;
 		case TT_LDOUBLE:
 			info.ldblval = token.info.ldblval; break;
+		case TT_STR:
+			info.str = new string(*token.info.str); break;
 	
 		default: // TT_INCLUDE
 			BOOST_ASSERT(false);
 	}
 
+}
+
+CToken::CToken(const string& s, int lexer_no, int token0_no)
+	: type(TT_STR), lexer_no(lexer_no), token0_no(token0_no)
+{
+	info.str = new string(s);
 }
 
 CToken::~CToken()
