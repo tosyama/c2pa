@@ -1,8 +1,11 @@
-#include <stdio.h>
+// #include <stdio.h>
+
+#define STRING(str) #str
+
 int main()
 {
-	printf("Hello World!\n");
-	if (a==10)
+	printf(STRING("Hello World!\n"));
+	if (a=='A')
 		a <<= 3;
 	return 0;
 }
